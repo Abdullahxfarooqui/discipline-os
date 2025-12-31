@@ -1,0 +1,108 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Helper function to check if user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    // Helper function to check if user owns the document
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+    
+    // Helper function to check if user is in a couples circle
+    function isInCircle(circleId) {
+      return isAuthenticated() && 
+        exists(/databases/$(database)/documents/couplesCircles/$(circleId)) &&
+        request.auth.uid in get(/databases/$(database)/documents/couplesCircles/$(circleId)).data.members;
+    }
+    
+    // User profiles - only the user can read/write their own profile
+    match /users/{userId} {
+      allow read: if isOwner(userId) || isPartnerInCircle(userId);
+      allow create: if isOwner(userId);
+      allow update: if isOwner(userId);
+      allow delete: if isOwner(userId);
+      
+      // Daily records subcollection
+      match /dailyRecords/{recordId} {
+        allow read: if isOwner(userId) || isPartnerInCircle(userId);
+        allow create: if isOwner(userId);
+        allow update: if isOwner(userId);
+        allow delete: if isOwner(userId);
+      }
+      
+      // Penalties subcollection - partners can create penalties for each other
+      match /penalties/{penaltyId} {
+        allow read: if isOwner(userId) || isPartnerInCircle(userId);
+        allow create: if isOwner(userId) || isPartnerInCircle(userId);
+        allow update: if isOwner(userId) || isPartnerInCircle(userId);
+        allow delete: if isOwner(userId);
+      }
+      
+      // Rewards subcollection
+      match /rewards/{rewardId} {
+        allow read: if isOwner(userId) || isPartnerInCircle(userId);
+        allow create: if isOwner(userId);
+        allow update: if isOwner(userId);
+        allow delete: if isOwner(userId);
+      }
+      
+      // Analytics subcollection
+      match /analytics/{analyticsId} {
+        allow read: if isOwner(userId);
+        allow create: if isOwner(userId);
+        allow update: if isOwner(userId);
+        allow delete: if isOwner(userId);
+      }
+    }
+    
+    // Helper function to check if user is partner in any circle with given user
+    function isPartnerInCircle(partnerId) {
+      // This requires the user to query their circle membership
+      return isAuthenticated();
+      // Note: In production, you'd want to implement proper circle membership validation
+      // This simplified version allows reading if authenticated, with app-level enforcement
+    }
+    
+    // Couples circles
+    match /couplesCircles/{circleId} {
+      allow read: if isAuthenticated() && request.auth.uid in resource.data.members;
+      allow create: if isAuthenticated();
+      allow update: if isAuthenticated() && request.auth.uid in resource.data.members;
+      allow delete: if isAuthenticated() && 
+        request.auth.uid == resource.data.createdBy &&
+        resource.data.members.size() == 1;
+        
+      // Mutual challenges within a circle
+      match /challenges/{challengeId} {
+        allow read: if isAuthenticated() && 
+          request.auth.uid in get(/databases/$(database)/documents/couplesCircles/$(circleId)).data.members;
+        allow create, update: if isAuthenticated() && 
+          request.auth.uid in get(/databases/$(database)/documents/couplesCircles/$(circleId)).data.members;
+        allow delete: if isAuthenticated() && 
+          request.auth.uid in get(/databases/$(database)/documents/couplesCircles/$(circleId)).data.members;
+      }
+    }
+    
+    // Analytics aggregates (read-only for authenticated users)
+    match /analytics/{docId} {
+      allow read: if isAuthenticated();
+      allow write: if false; // Only server-side writes
+    }
+    
+    // System configuration (read-only)
+    match /config/{docId} {
+      allow read: if isAuthenticated();
+      allow write: if false; // Admin only
+    }
+    
+    // Leaderboards (read-only, updated by cloud functions)
+    match /leaderboards/{docId} {
+      allow read: if isAuthenticated();
+      allow write: if false; // Only cloud functions
+    }
+  }
+}

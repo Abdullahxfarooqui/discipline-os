@@ -36,9 +36,9 @@ import {
 } from '@/lib/firebase/database';
 import {
   createEmptyDailyRecord,
-  calculateEarnedPoints,
 } from '@/lib/engines/taskEngine';
 import {
+  calculateEarnedPoints,
   updateDailyRecordScores,
   generateDailyVerdict,
 } from '@/lib/engines/scoringEngine';
@@ -141,19 +141,27 @@ export const useAppStore = create<AppStore>((set, get) => ({
             const newProfile: Omit<UserProfile, 'id'> = {
               email: user.email || '',
               displayName: user.displayName || user.email?.split('@')[0] || 'User',
-              timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-              fajrTime: '05:30',
+              couplesCircle: null,
               streak: {
                 current: 0,
                 longest: 0,
                 lastSafeDate: null,
               },
-              leniencyCredits: 2,
               settings: {
-                notifications: true,
-                dailyReminders: true,
-                partnerAlerts: true,
-                penaltyAlerts: true,
+                fajrTime: '05:30',
+                sleepTarget: '22:30',
+                targetWakeTime: '05:30',
+                dailyCalorieTarget: 2000,
+                dailyWaterTarget: 8,
+                dailyStepsTarget: 10000,
+                screenTimeLimit: 120,
+                notifications: {
+                  morning: true,
+                  evening: true,
+                  reminders: true,
+                  partnerUpdates: true,
+                },
+                timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
               },
               createdAt: new Date(),
             };

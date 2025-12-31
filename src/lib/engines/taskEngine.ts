@@ -500,27 +500,6 @@ export function createEmptyDailyRecord(userId: string, date: Date): Omit<DailyRe
 }
 
 /**
- * Calculate earned points from task completions
- */
-export function calculateEarnedPoints(
-  tasks: Record<string, TaskCompletion>,
-  includeOptional: boolean = true
-): number {
-  let points = 0;
-  
-  Object.values(tasks).forEach((completion) => {
-    if (completion.completed) {
-      const taskDef = getTaskById(completion.taskId);
-      if (taskDef && (includeOptional || !taskDef.isOptional)) {
-        points += taskDef.weight;
-      }
-    }
-  });
-  
-  return points;
-}
-
-/**
  * Calculate completion percentage for mandatory tasks
  */
 export function calculateMandatoryCompletion(tasks: Record<string, TaskCompletion>): number {

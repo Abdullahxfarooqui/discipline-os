@@ -19,8 +19,9 @@ export default function SignUpPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [agreedToTerms, setAgreedToTerms] = useState(false);
   const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   
-  const { signUp, signInWithGoogle, isLoading } = useAppStore();
+  const { signUp, signInWithGoogle } = useAppStore();
   
   const passwordRequirements = [
     { met: password.length >= 8, text: 'At least 8 characters' },
@@ -52,22 +53,26 @@ export default function SignUpPage() {
       return;
     }
     
+    setIsLoading(true);
     try {
       await signUp(email, password, name);
       toast.success('Account created! Welcome to Discipline OS.');
     } catch (err: any) {
       setError(err.message);
       toast.error(err.message);
+      setIsLoading(false);
     }
   };
   
   const handleGoogleSignIn = async () => {
+    setIsLoading(true);
     try {
       await signInWithGoogle();
       toast.success('Welcome to Discipline OS!');
     } catch (err: any) {
       setError(err.message);
       toast.error(err.message);
+      setIsLoading(false);
     }
   };
   

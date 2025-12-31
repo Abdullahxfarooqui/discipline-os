@@ -16,8 +16,9 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   
-  const { signIn, signInWithGoogle, isLoading } = useAppStore();
+  const { signIn, signInWithGoogle } = useAppStore();
   
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -28,22 +29,26 @@ export default function LoginPage() {
       return;
     }
     
+    setIsLoading(true);
     try {
       await signIn(email, password);
       toast.success('Welcome back!');
     } catch (err: any) {
       setError(err.message);
       toast.error(err.message);
+      setIsLoading(false);
     }
   };
   
   const handleGoogleSignIn = async () => {
+    setIsLoading(true);
     try {
       await signInWithGoogle();
       toast.success('Welcome!');
     } catch (err: any) {
       setError(err.message);
       toast.error(err.message);
+      setIsLoading(false);
     }
   };
   

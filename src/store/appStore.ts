@@ -263,38 +263,38 @@ export const useAppStore = create<AppStore>((set, get) => ({
   
   // Auth actions
   signIn: async (email, password) => {
-    set({ isLoading: true });
     try {
       await firebaseSignIn(email, password);
-    } finally {
-      set({ isLoading: false });
+      // Auth state change will trigger initialize() which handles loading state
+    } catch (error) {
+      throw error;
     }
   },
   
   signUp: async (email, password, displayName) => {
-    set({ isLoading: true });
     try {
       await firebaseSignUp(email, password, displayName);
-    } finally {
-      set({ isLoading: false });
+      // Auth state change will trigger initialize() which handles loading state
+    } catch (error) {
+      throw error;
     }
   },
   
   signInWithGoogle: async () => {
-    set({ isLoading: true });
     try {
       await signInWithGoogle();
-    } finally {
-      set({ isLoading: false });
+      // Auth state change will trigger initialize() which handles loading state
+    } catch (error) {
+      throw error;
     }
   },
   
   signOut: async () => {
-    set({ isLoading: true });
     try {
       await firebaseSignOut();
-    } finally {
-      set({ isLoading: false });
+      // Auth state change will trigger initialize() which handles loading state
+    } catch (error) {
+      throw error;
     }
   },
   
